@@ -9,7 +9,7 @@ fi
 
 if [ "$1" == "--version" ]
 then
-	echo "Wineorc v2.8 "
+	echo "Wineorc vidk "
 	echo "License: MIT (see https://github.com/PlaceholderLabs/wineORC/blob/main/LICENSE) "
 	exit
 fi
@@ -34,6 +34,11 @@ uninstall ()
 {
 	echo "Uninstalling $CURRENT now.. "
 	sleep 3
+ 	if [ $CURRENT == "Hexagon" ]
+	then
+		rm $HOME/.placeholder -rf
+		sudo rm /usr/share/applications/hexagon.desktop
+	fi
 	if [ $CURRENT == "Placeholder" ]
 	then
 		rm $HOME/.placeholder -rf
@@ -60,6 +65,7 @@ then
 	echo "1. Placeholder "
 	echo "2. ItteBlox "
 	echo "3. SyntaxEco "
+ 	echo "4. Hexagon "
 	read UNINSTALLOPT 
 	if [ $UNINSTALLOPT == "1" ]
 	then
@@ -74,6 +80,11 @@ then
 	if [ $UNINSTALLOPT == "3" ]
 	then
 		CURRENT="SyntaxEco"
+		uninstall
+	fi
+ 	if [ $UNINSTALLOPT == "4" ]
+	then
+		CURRENT="Hexagon"
 		uninstall
 	fi
 fi
@@ -100,6 +111,10 @@ then
 	if [ $DXVKOPT == "3" ]
 	then
 		WINEPREFIX=$HOME/.syntaxeco ./setup_dxvk.sh install
+	fi
+	if [ $DXVKOPT == "4" ]
+	then
+		WINEPREFIX=$HOME/.hexagon ./setup_dxvk.sh install
 	fi
 	cd $HOME
 	rm tmp -rf
@@ -197,7 +212,7 @@ othercheck ()
 	else
 		echo "wget is installed, skipping check.. "
 	fi
-	if [ $CURRENT == "ItteBlox" ] || [ $CURRENT == "Placeholder" ] || [ $CURRENT == "SyntaxEco" ]
+	if [ $CURRENT == "ItteBlox" ] || [ $CURRENT == "Placeholder" ] || [ $CURRENT == "SyntaxEco" ] || [ $CURRENT == "Hexagon" ]
 	then	
 		if [ ! -x /usr/bin/curl ]
 		then
@@ -241,6 +256,16 @@ uri ()
 		echo "Type=Application" >> syntaxeco.desktop
 		echo "Exec=env WINEPREFIX=$HOME/.syntaxeco wine $HOME/.syntaxeco/drive_c/users/$USER/AppData/Local/Syntax/Versions/$SYNTAXVER/SyntaxPlayerLauncher.exe %u" >> syntaxeco.desktop
 		echo "MimeType=x-scheme-handler/roblox-player-syntax" >> syntaxeco.desktop
+	fi
+ 	if [ $CURRENT == "Hexagon" ]
+	then
+	        touch hexagon.desktop
+		echo "[Desktop Entry]" >> hexagon.desktop
+		echo "Name=Hexagon Player" >> hexagon.desktop
+		echo "Comment=https://hexagon.pw" >> hexagon.desktop
+		echo "Type=Application" >> hexagon.desktop
+		echo "Exec=env WINEPREFIX=$HOME/.hexagon wine $HOME/.hexagon/drive_c/users/$USER/AppData/Local/Hexagon/Versions/$HEXVER/HexagonPlayerLauncher.exe %U" >> hexagon.desktop
+		echo "MimeType=x-scheme-handler/hexagon-player" >> hexagon.desktop
 	fi
 	sudo mv *.desktop /usr/share/applications
 	sudo update-desktop-database
@@ -298,11 +323,30 @@ syntaxeco ()
 	uri
 }
 
+hexagoneco ()
+{
+	winecheck
+	othercheck
+	echo "$CURRENT is now being installed, please wait as this may take some time. "
+ 	echo "$CURRENT is untested and new, please practice some caution with this private-server."
+        sleep 3
+	PLACEHOLDERVER=`curl https://setup.hexagon.pw/version` # uri
+	mkdir $HOME/.hexagon
+	WINEPREFIX=$HOME/.hexagon winecfg -v win10
+	mkdir $HOME/tmp
+	cd $HOME/tmp
+	wget https://setup.hexagon.pw/HexagonPlayerLauncher.exe
+	echo "Your browser may open to the Hexagon website when this is ran. Just close it. "
+	WINEPREFIX=$HOME/.hexagon wine HexagonPlayerLauncher.exe
+	uri
+}
+
 
 echo "Welcome to Wineorc, please select an revival to install. (see --help for other options) "
 echo "1. Placeholder "
 echo "2. ItteBlox "
 echo "3. SyntaxEco "
+echo "4. Hexagon "
 read OPT
 if [ $OPT == "1" ]
 then
@@ -319,11 +363,14 @@ then
 	CURRENT="SyntaxEco"
 	syntaxeco
 fi
-
+if [ $OPT == "4" ]
+then
+	CURRENT="Hexagon"
+	hexagoneco
+fi
 
 wineserver -k
 cd $HOME
 rm tmp -rf
 echo "$CURRENT should now be installed! Try playing a game and it should work! "
 exit
-
